@@ -40,8 +40,8 @@ module Rack
       attr_accessor :x_forwarded_proto_priority
     end
 
-    @forwarded_priority = [:forwarded, :x_forwarded]
-    @x_forwarded_proto_priority = [:proto, :scheme]
+    @forwarded_priority = [:forwarded, :x_forwarded].freeze
+    @x_forwarded_proto_priority = [:proto, :scheme].freeze
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
 
