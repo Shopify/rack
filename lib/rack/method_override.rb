@@ -6,11 +6,11 @@ require_relative 'utils'
 
 module Rack
   class MethodOverride
-    HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
+    HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK].freeze
 
     METHOD_OVERRIDE_PARAM_KEY = "_method"
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE"
-    ALLOWED_METHODS = %w[POST]
+    ALLOWED_METHODS = %w[POST].freeze
 
     def initialize(app)
       @app = app
