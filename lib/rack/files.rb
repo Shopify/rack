@@ -24,11 +24,32 @@ module Rack
 
     attr_reader :root
 
+    # Adapter that exposes a Rack::Files#get as a Rack-callable.
+    #
+    # The previous +lambda { |env| get env }+ captured +self+, which is
+    # not the actual problem for Ractor shareability — that lambda is
+    # bound to a fresh +Rack::Files+ instance. The real win is structural:
+    # the +Rack::Head+ wrapper now reaches the +Rack::Files+ via the
+    # adapter's +@files+ ivar, so the deep shareability walk traverses an
+    # explicit ivar back-reference instead of a Proc closure. Procs need
+    # explicit shareability promotion; ivars carrying shareable objects
+    # do not.
+    class GetAdapter # :nodoc:
+      def initialize(files)
+        @files = files
+      end
+
+      def call(env)
+        @files.get(env)
+      end
+    end
+    private_constant :GetAdapter
+
     def initialize(root, headers = {}, default_mime = 'text/plain')
       @root = (::File.expand_path(root) if root)
       @headers = headers
       @default_mime = default_mime
-      @head = Rack::Head.new(lambda { |env| get env })
+      @head = Rack::Head.new(GetAdapter.new(self))
     end
 
     def call(env)
