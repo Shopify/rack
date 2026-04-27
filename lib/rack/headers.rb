@@ -87,6 +87,7 @@ module Rack
       downcased = str.downcase.freeze
       KNOWN_HEADERS[str] = KNOWN_HEADERS[downcased] = downcased
     end
+    KNOWN_HEADERS.freeze
 
     def self.[](*items)
       if items.length % 2 != 0
