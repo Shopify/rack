@@ -690,5 +690,13 @@ module Rack
       ".zip"       => "application/zip",
       ".zmm"       => "application/vnd.handheld-entertainment+xml",
     }
+
+    # Deep-freeze the MIME table so it can be read from non-main Ractors
+    # without copying. This is a public-API break: +Rack::Mime::MIME_TYPES.merge!(list)+
+    # is the documented extension point, and once this file has loaded the
+    # table is frozen and can no longer be mutated. Callers that relied on
+    # that extension point must now keep their additions in an
+    # application-side lookup table layered over this one.
+    Ractor.make_shareable(MIME_TYPES)
   end
 end
