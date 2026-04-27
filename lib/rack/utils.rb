@@ -33,6 +33,7 @@ module Rack
     # This helps prevent a rogue client from triggering a possible stack overflow
     # when parsing parameters.
     self.default_query_parser = QueryParser.make_default(32)
+    Ractor.make_shareable(default_query_parser)
 
     module_function
 

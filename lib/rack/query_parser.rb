@@ -6,7 +6,7 @@ require 'uri'
 module Rack
   class QueryParser
     DEFAULT_SEP = /& */n
-    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n }
+    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n }.freeze
 
     # ParameterTypeError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain conflicting types.
