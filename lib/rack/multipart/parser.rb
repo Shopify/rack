@@ -53,11 +53,11 @@ module Rack
     class Parser
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
-      TEMPFILE_FACTORY = lambda { |filename, content_type|
+      TEMPFILE_FACTORY = Ractor.make_shareable(lambda { |filename, content_type|
         extension = ::File.extname(filename.gsub("\0", '%00'))[0, 129]
 
         Tempfile.new(["RackMultipart", extension])
-      }
+      })
 
       BOUNDARY_START_LIMIT = 16 * 1024
       private_constant :BOUNDARY_START_LIMIT
@@ -117,7 +117,7 @@ module Rack
       end
 
       MultipartInfo = Struct.new :params, :tmp_files
-      EMPTY         = MultipartInfo.new(nil, [])
+      EMPTY         = Ractor.make_shareable(MultipartInfo.new(nil, []))
 
       def self.parse_boundary(content_type)
         return unless content_type
