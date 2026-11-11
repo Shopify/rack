@@ -44,15 +44,18 @@ module Rack
     @x_forwarded_proto_priority = [:ssl, :proto, :scheme]
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
+    # IPv4 peers of a dual-stack listener are reported in IPv4-mapped form
+    # (::ffff:a.b.c.d).
+    ipv4_mapped = /(?:::ffff:)?/i
 
     trusted_proxies = Regexp.union(
-      /\A127#{valid_ipv4_octet}{3}\z/,                          # localhost IPv4 range 127.x.x.x, per RFC-3330
-      /\A::1\z/,                                                # localhost IPv6 ::1
-      /\Af[cd][0-9a-f]{2}(?::[0-9a-f]{0,4}){0,7}\z/i,           # private IPv6 range fc00 .. fdff
-      /\A10#{valid_ipv4_octet}{3}\z/,                           # private IPv4 range 10.x.x.x
-      /\A172\.(1[6-9]|2[0-9]|3[01])#{valid_ipv4_octet}{2}\z/,   # private IPv4 range 172.16.0.0 .. 172.31.255.255
-      /\A192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
-      /\Alocalhost\z|\Aunix(\z|:)/i,                            # localhost hostname, and unix domain sockets
+      /\A#{ipv4_mapped}127#{valid_ipv4_octet}{3}\z/,                          # localhost IPv4 range 127.x.x.x, per RFC-3330
+      /\A::1\z/,                                                              # localhost IPv6 ::1
+      /\Af[cd][0-9a-f]{2}(?::[0-9a-f]{0,4}){0,7}\z/i,                         # private IPv6 range fc00 .. fdff
+      /\A#{ipv4_mapped}10#{valid_ipv4_octet}{3}\z/,                           # private IPv4 range 10.x.x.x
+      /\A#{ipv4_mapped}172\.(1[6-9]|2[0-9]|3[01])#{valid_ipv4_octet}{2}\z/,   # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      /\A#{ipv4_mapped}192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
+      /\Alocalhost\z|\Aunix(\z|:)/i,                                          # localhost hostname, and unix domain sockets
     ).freeze
 
     self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
@@ -256,6 +259,9 @@ module Rack
 
       # The address of the client which connected to the proxy.
       HTTP_X_FORWARDED_FOR = 'HTTP_X_FORWARDED_FOR'
+
+      # The address of the client as determined by the proxy (nginx realip).
+      HTTP_X_REAL_IP = 'HTTP_X_REAL_IP'
 
       # The contents of the host/:authority header sent to the proxy.
       HTTP_X_FORWARDED_HOST = 'HTTP_X_FORWARDED_HOST'
@@ -504,6 +510,10 @@ module Rack
       end
 
       def ip
+        if (real_ip = get_header(HTTP_X_REAL_IP)) && !real_ip.empty?
+          return real_ip
+        end
+
         remote_addresses = split_header(get_header('REMOTE_ADDR'))
 
         remote_addresses.reverse_each do |ip|

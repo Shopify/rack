@@ -3,6 +3,7 @@
 require 'set'
 
 require_relative 'constants'
+require_relative 'utils'
 
 module Rack
   # Rack::URLMap takes a hash mapping urls or paths to apps, and
@@ -76,7 +77,7 @@ module Rack
         return app.call(env)
       end
 
-      [404, { CONTENT_TYPE => "text/plain", "x-cascade" => "pass" }, ["Not Found: #{path}"]]
+      not_found(path)
 
     ensure
       env[PATH_INFO]   = path
@@ -84,6 +85,16 @@ module Rack
     end
 
     private
+
+    # HTML not-found page, matching Rack::Directory.
+    def not_found(path)
+      body = "<html><head><title>Not Found</title></head><body>\n" \
+        "<h1>Not Found: #{Utils.escape_html(path)}</h1>\n</body></html>\n"
+      [404, { CONTENT_TYPE => "text/html; charset=utf-8",
+        CONTENT_LENGTH => body.bytesize.to_s,
+        "x-cascade" => "pass" }, [body]]
+    end
+
     def casecmp?(v1, v2)
       # if both nil, or they're the same string
       return true if v1 == v2

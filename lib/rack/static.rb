@@ -151,7 +151,9 @@ module Rack
         path = env[PATH_INFO]
         response ||= @file_server.call(env)
 
-        if @cascade && response[0] == 404
+        # Requests the file server can't serve (missing file, non-GET method) fall
+        # through to the application, as ActionDispatch::Static does.
+        if @cascade && (response[0] == 404 || response[0] == 405)
           return @app.call(env)
         end
 

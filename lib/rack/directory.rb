@@ -63,8 +63,8 @@ table { width:100%%; }
           yield(DIR_FILE % DIR_FILE_escape(files.call('..')))
         end
 
-        Dir.foreach(path) do |basename|
-          next if basename.start_with?('.')
+        # Sorted; `*` leaves dotfiles out and `base:` keeps path out of the pattern.
+        Dir.glob('*', base: path) do |basename|
           next unless f = files.call(basename)
           yield(DIR_FILE % DIR_FILE_escape(f))
         end
@@ -140,7 +140,6 @@ table { width:100%%; }
         Utils.escape_path part
       end
 
-      # Globbing not safe as path could contain glob metacharacters
       body = DirectoryBody.new(@root, path, ->(basename) do
         stat = stat(::File.join(path, basename))
         next unless stat
@@ -187,8 +186,9 @@ table { width:100%%; }
 
     # Rack response to use for unreadable and non-file, non-directory entries.
     def entity_not_found(path_info)
-      body = "Entity not found: #{path_info}\n"
-      [404, { CONTENT_TYPE => "text/plain",
+      body = "<html><head><title>Entity not found</title></head><body>\n" \
+        "<h1>Entity not found: #{path_info}</h1>\n</body></html>\n"
+      [404, { CONTENT_TYPE => "text/html; charset=utf-8",
         CONTENT_LENGTH => body.bytesize.to_s,
         "x-cascade" => "pass" }, [body]]
     end

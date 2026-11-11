@@ -59,9 +59,17 @@ module Rack
     end
 
     # Whether the etag response header matches the if-none-match request header.
-    # If so, the request has not been modified.
+    # If so, the request has not been modified. If-None-Match may carry several
+    # tags or `*`, and RFC 7232 compares weakly, so `W/` prefixes are ignored.
     def etag_matches?(none_match, headers)
-      headers[ETAG] == none_match
+      return false unless etag = headers[ETAG]
+      return true if none_match == '*'
+
+      none_match.split(',').any? { |tag| opaque_tag(tag) == opaque_tag(etag) }
+    end
+
+    def opaque_tag(etag)
+      etag.strip.delete_prefix('W/')
     end
 
     # Whether the last-modified response header matches the if-modified-since

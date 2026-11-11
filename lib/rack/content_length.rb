@@ -25,7 +25,7 @@ module Rack
          body.respond_to?(:to_ary)
 
         response[2] = body = body.to_ary
-        headers[CONTENT_LENGTH] = body.sum(&:bytesize).to_s
+        headers[CONTENT_LENGTH] = body.sum(&:size).to_s
       end
 
       response

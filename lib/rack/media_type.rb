@@ -6,6 +6,11 @@ module Rack
   class MediaType
     SPLIT_PATTERN = /[;,]/
 
+    # parameter = token "=" ( token / quoted-string ). A quoted value may
+    # contain the separator characters and escaped quotes, so parameters are
+    # matched individually rather than split on SPLIT_PATTERN.
+    PARAMETER = /([^=;,\s]+)\s*(?:=\s*(?:(["'])((?:\\.|[^"])*)\2|([^;,]*)))?/
+
     class << self
       # The media type (type/subtype) portion of the CONTENT_TYPE header
       # without any media type parameters. e.g., when CONTENT_TYPE is
@@ -33,19 +38,11 @@ module Rack
       # the query params parser (barring the latter case, which returns nil instead)).
       def params(content_type)
         return {} if content_type.nil? || content_type.empty?
+        return {} unless parameters = content_type.split(SPLIT_PATTERN, 2)[1]
 
-        content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
-          s.strip!
-          k, v = s.split('=', 2)
-          k.downcase!
-          hsh[k] = strip_doublequotes(v)
+        parameters.scan(PARAMETER).each_with_object({}) do |(name, _, quoted, token), hsh|
+          hsh[name.downcase] = quoted || token&.strip || ''
         end
-      end
-
-      private
-
-      def strip_doublequotes(str)
-        (str && str.start_with?('"') && str.end_with?('"')) ? str[1..-2] : str || ''
       end
     end
   end
