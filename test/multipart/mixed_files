@@ -1,0 +1,21 @@
+--AaB03x
+content-disposition: form-data; name="foo"
+
+bar
+--AaB03x
+content-disposition: form-data; name="files"
+content-type: multipart/mixed; boundary=BbC04y
+
+--BbC04y
+content-disposition: attachment; filename="file.txt"
+content-type: text/plain
+
+contents
+--BbC04y
+content-disposition: attachment; filename="flowers.jpg"
+content-type: image/jpeg
+content-transfer-encoding: binary
+
+contents
+--BbC04y--
+--AaB03x--

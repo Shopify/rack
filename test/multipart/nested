@@ -1,0 +1,10 @@
+--AaB03x
+content-disposition: form-data; name="foo[submit-name]"
+
+Larry
+--AaB03x
+content-disposition: form-data; name="foo[files]"; filename="file1.txt"
+content-type: text/plain
+
+contents
+--AaB03x--
