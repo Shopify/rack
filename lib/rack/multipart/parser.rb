@@ -168,13 +168,7 @@ module Rack
             elsif filename
               body.rewind if body.respond_to?(:rewind)
 
-              # Take the basename of the upload's original filename.
-              # This handles the full Windows paths given by Internet Explorer
-              # (and perhaps other broken user agents) without affecting
-              # those which give the lone filename.
-              fn = filename.split(/[\/\\]/).last
-
-              data = { filename: fn, type: content_type,
+              data = { filename: filename, type: content_type,
                       name: name, tempfile: body, head: head }
             end
 
@@ -271,7 +265,7 @@ module Rack
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".b)
-        @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
+        @body_regex = /(?:#{EOL}|\A)--#{boundary}(?:#{EOL}|--)/m
         @body_regex_at_end = /#{@body_regex}\z/m
         @end_boundary_size = boundary.bytesize + 4 # (-- at start, -- at finish)
         @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
@@ -544,6 +538,8 @@ module Rack
       end
 
       def normalize_filename(filename)
+        filename = filename.split(/[\/\\]/).last || String.new
+
         if filename.scan(/%.?.?/).all? { |s| /%[0-9a-fA-F]{2}/.match?(s) }
           filename = Utils.unescape_path(filename)
         end
@@ -553,8 +549,7 @@ module Rack
         filename.force_encoding(Encoding::UTF_8)
 
         filename.scrub!
-
-        filename.split(/[\/\\]/).last || String.new
+        filename
       end
 
       CHARSET = "charset"

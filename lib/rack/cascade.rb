@@ -4,7 +4,7 @@ require_relative 'constants'
 
 module Rack
   # Rack::Cascade tries a request on several apps, and returns the
-  # first response that is not 404 or 405 (or in a list of configured
+  # first response that is not 404, 405 or 403 (or in a list of configured
   # status codes).  If all applications tried return one of the configured
   # status codes, return the last response.
 
@@ -18,7 +18,7 @@ module Rack
     # apps: An enumerable of rack applications.
     # cascade_for: The statuses to use cascading for.  If a response is received
     #              from an app, the next app is tried.
-    def initialize(apps, cascade_for = [404, 405])
+    def initialize(apps, cascade_for = [404, 405, 403])
       @apps = []
       apps.each { |app| add app }
 

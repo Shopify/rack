@@ -257,6 +257,9 @@ module Rack
       # The address of the client which connected to the proxy.
       HTTP_X_FORWARDED_FOR = 'HTTP_X_FORWARDED_FOR'
 
+      # The address of the client as determined by the proxy (nginx realip).
+      HTTP_X_REAL_IP = 'HTTP_X_REAL_IP'
+
       # The contents of the host/:authority header sent to the proxy.
       HTTP_X_FORWARDED_HOST = 'HTTP_X_FORWARDED_HOST'
 
@@ -504,6 +507,10 @@ module Rack
       end
 
       def ip
+        if (real_ip = get_header(HTTP_X_REAL_IP)) && !real_ip.empty?
+          return real_ip
+        end
+
         remote_addresses = split_header(get_header('REMOTE_ADDR'))
 
         remote_addresses.reverse_each do |ip|

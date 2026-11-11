@@ -187,8 +187,9 @@ table { width:100%%; }
 
     # Rack response to use for unreadable and non-file, non-directory entries.
     def entity_not_found(path_info)
-      body = "Entity not found: #{path_info}\n"
-      [404, { CONTENT_TYPE => "text/plain",
+      body = "<html><head><title>Entity not found</title></head><body>\n" \
+        "<h1>Entity not found: #{path_info}</h1>\n</body></html>\n"
+      [404, { CONTENT_TYPE => "text/html; charset=utf-8",
         CONTENT_LENGTH => body.bytesize.to_s,
         "x-cascade" => "pass" }, [body]]
     end
